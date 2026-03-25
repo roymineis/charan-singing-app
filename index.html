@@ -223,18 +223,7 @@
     font-size: 28px; font-weight: 700; color: rgba(255,255,255,0.6);
   }
 
-  /* 곡 인식 결과 (노래방 영역 안) */
-  .charan-promo .karaoke-detected {
-    position: relative; z-index: 2;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 12px; padding: 12px 16px; margin: 0 auto 20px;
-    max-width: 300px; display: none;
-  }
-  .charan-promo .karaoke-detected.visible { display: flex; align-items: center; gap: 10px; }
-  .charan-promo .karaoke-detected-icon { font-size: 28px; }
-  .charan-promo .karaoke-detected-text { text-align: left; }
-  .charan-promo .karaoke-detected-name { font-size: 15px; font-weight: 800; color: #fff; }
-  .charan-promo .karaoke-detected-artist { font-size: 12px; color: rgba(255,255,255,0.6); }
+  /* 곡 인식 결과 — 제거됨 */
 
   /* 세부 점수 — 밝은 영역 */
   .charan-promo .result-detail-area {
@@ -443,14 +432,7 @@
 
     <div class="logo-area" id="logoResult" style="margin-bottom:16px;"></div>
 
-    <!-- 곡 인식 결과 -->
-    <div class="karaoke-detected" id="detectedSong">
-      <div class="karaoke-detected-icon" id="detectedIcon">🎵</div>
-      <div class="karaoke-detected-text">
-        <div class="karaoke-detected-name" id="detectedName">-</div>
-        <div class="karaoke-detected-artist" id="detectedArtist">-</div>
-      </div>
-    </div>
+    <!-- 곡 인식 결과 — 제거됨 -->
 
     <!-- 멘트 -->
     <div class="karaoke-comment" id="karaokeComment">환상적인 노래실력</div>
@@ -1130,25 +1112,7 @@ async function showResult(result) {
   const { stability, melody, rhythm, volume, total } = result;
   const tier = COUPON_TIERS.find(t => total >= t.min);
 
-  // 곡 인식 (서버 API + 인식된 가사 표시)
-  const detectedCard = document.getElementById('detectedSong');
-  detectedCard.classList.remove('visible');
-  if (recognizedText && recognizedText.trim().length >= 3) {
-    // 먼저 인식된 가사를 바로 표시
-    detectedCard.classList.add('visible');
-    document.getElementById('detectedIcon').textContent = '🎤';
-    document.getElementById('detectedName').textContent = recognizedText.trim().substring(0, 60) + (recognizedText.length > 60 ? '...' : '');
-    document.getElementById('detectedArtist').textContent = '가사 인식됨 · 곡 검색 중...';
-    // 서버 API로 곡 검색 시도
-    detectedSongInfo = await searchSong(recognizedText);
-    if (detectedSongInfo && detectedSongInfo.found) {
-      document.getElementById('detectedIcon').textContent = '🎵';
-      document.getElementById('detectedName').textContent = detectedSongInfo.name;
-      document.getElementById('detectedArtist').textContent = detectedSongInfo.artist;
-    } else {
-      document.getElementById('detectedArtist').textContent = '인식된 가사로 곡을 찾지 못했어요';
-    }
-  }
+  // 곡 인식 UI — 제거됨
 
   // 노래방 멘트
   const commentList = COMMENTS[tier.grade];
@@ -1262,11 +1226,8 @@ function _getShareText() {
   const dur = window._lastDuration || 0;
   const score = document.getElementById('totalResult').textContent;
   const couponDesc = document.getElementById('couponDesc').textContent;
-  const songPart = (detectedSongInfo && detectedSongInfo.found)
-    ? `${detectedSongInfo.name}(${detectedSongInfo.artist})을 `
-    : '';
   const url = window.location.origin + '/';
-  return `차란 노래자랑에서 ${songPart}${dur}초 노래하고 ${score}을 받았어요! 상품으로 ${couponDesc} 쿠폰을 받았어요🎉\n\n차란 노래자랑 도전하고 쿠폰 받기\n${url}`;
+  return `차란 노래자랑에서 ${dur}초 노래하고 ${score}을 받았어요! 상품으로 ${couponDesc} 쿠폰을 받았어요🎉\n\n차란 노래자랑 도전하고 쿠폰 받기\n${url}`;
 }
 
 async function shareResult() {
