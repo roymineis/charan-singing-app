@@ -495,10 +495,9 @@
     <div class="coupon-card">
       <div class="coupon-inner">
         <div class="coupon-label">🎉 축하합니다! 쿠폰이 발급되었어요</div>
-        <div class="coupon-name" id="couponName">-</div>
         <div class="coupon-desc" id="couponDesc">-</div>
         <div class="coupon-code" id="couponCode">-</div>
-        <div class="coupon-expire">유효기간: 발급일로부터 7일</div>
+        <div class="coupon-expire">쿠폰 사용 방법 : 차란 > 마이차란 > 내 쿠폰 > 쿠폰 등록하기</div>
       </div>
     </div>
   </div>
@@ -649,13 +648,13 @@ const CONFIG = {
 };
 
 const COUPON_TIERS = [
-  { grade: 'S', min: 95, name: '프리미엄 쿠폰', desc: '전 메뉴 50% 할인', color: '#fbbf24' },
-  { grade: 'A', min: 88, name: '골드 쿠폰',     desc: '전 메뉴 30% 할인', color: '#7c3aed' },
-  { grade: 'B', min: 82, name: '실버 쿠폰',     desc: '전 메뉴 15% 할인', color: '#64748b' },
-  { grade: 'C', min: 76, name: '브론즈 쿠폰',   desc: '음료 1잔 무료',    color: '#b45309' },
-  { grade: 'D', min: 70, name: '참여 쿠폰',     desc: '무료 배송 쿠폰',   color: '#6b7280' },
-  { grade: 'E', min: 55, name: '참여 쿠폰',     desc: '무료 배송 쿠폰',   color: '#94a3b8' },
-  { grade: 'F', min: 0,  name: '참여 쿠폰',     desc: '무료 배송 쿠폰',   color: '#9ca3af' },
+  { grade: 'S', min: 95, name: '', desc: '케어드 상품 15% 할인', color: '#fbbf24' },
+  { grade: 'A', min: 88, name: '', desc: '케어드 상품 15% 할인', color: '#7c3aed' },
+  { grade: 'B', min: 82, name: '', desc: '케어드 상품 15% 할인', color: '#64748b' },
+  { grade: 'C', min: 76, name: '', desc: '케어드 상품 15% 할인', color: '#b45309' },
+  { grade: 'D', min: 70, name: '', desc: '케어드 상품 15% 할인', color: '#6b7280' },
+  { grade: 'E', min: 55, name: '', desc: '케어드 상품 15% 할인', color: '#94a3b8' },
+  { grade: 'F', min: 0,  name: '', desc: '케어드 상품 15% 할인', color: '#9ca3af' },
 ];
 
 const WEIGHTS = { stability: 30, melody: 30, rhythm: 20, volume: 20 };
@@ -1088,24 +1087,6 @@ function calculateScore() {
 }
 
 
-      }
-    });
-
-    // 곡 이름/가수명 직접 언급 보너스
-    if (combined.includes(song.name.toLowerCase())) score += 15;
-    if (combined.includes(song.artist.toLowerCase())) score += 10;
-
-    // 2개 이상 구절 매칭 시 정확도 보너스
-    if (matchCount >= 2) score *= 1.5;
-
-    if (score > bestScore) { bestScore = score; bestMatch = song; }
-  });
-
-  // 임계값: 최소 12점 이상이어야 인식으로 인정 (오인식 방지)
-  return bestScore >= 12 ? bestMatch : null;
-}
-
-
 /* ═══ 결과 화면 (노래방 기계 스타일) ═══ */
 async function showResult(result) {
   showScreen('result');
@@ -1145,8 +1126,6 @@ async function showResult(result) {
   }, 300);
 
   // 쿠폰
-  document.getElementById('couponName').textContent = tier.name;
-  document.getElementById('couponName').style.color = tier.color;
   document.getElementById('couponDesc').textContent = tier.desc;
   document.getElementById('couponCode').textContent = generateCode();
 
@@ -1171,10 +1150,7 @@ function animateNum(elId, from, to, dur, fmt) {
 }
 
 function generateCode() {
-  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = 'CR-';
-  for (let i = 0; i < 8; i++) code += c[Math.floor(Math.random() * c.length)];
-  return code;
+  return 'RELOVE';
 }
 
 function launchConfetti() {
