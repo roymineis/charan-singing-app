@@ -723,6 +723,7 @@ let pitchData = [], volumeData = [], onsetTimes = [];
 let recentPitches = [], recentVolumes = [], lastOnsetTime = 0;
 let speechRecognition = null;
 let recognizedText = '';
+let accumulatedText = ''; // 재시작 시에도 유지되는 누적 텍스트
 let detectedSongInfo = null; // 서버에서 인식된 곡 정보
 
 
@@ -787,6 +788,7 @@ function startRecording() {
   pitchData = []; volumeData = []; onsetTimes = [];
   recentPitches = []; recentVolumes = []; lastOnsetTime = 0;
   recognizedText = '';
+  accumulatedText = '';
   detectedSongInfo = null;
   document.getElementById('speechText').textContent = '';
   document.getElementById('speechText').style.display = 'none';
@@ -903,39 +905,88 @@ function stopRecording() {
 
 
 /* ═══ 채점 (70~100점 범위) ═══ */
-/* ═══ 음성 인식 (Web Speech API) ═══ */
+/* ═══ 음성 인식 (Web Speech API) — 노래 가사 인식 최적화 ═══ */
 function startSpeechRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { console.log('SpeechRecognition 미지원'); return; }
-  speechRecognition = new SR();
-  speechRecognition.lang = 'ko-KR';
-  speechRecognition.continuous = true;
-  speechRecognition.interimResults = true;
 
-  speechRecognition.onresult = (e) => {
-    let interim = '', final = '';
-    for (let i = 0; i < e.results.length; i++) {
-      if (e.results[i].isFinal) {
-        final += e.results[i][0].transcript + ' ';
-      } else {
-        interim += e.results[i][0].transcript;
+  function createRecognizer() {
+    const rec = new SR();
+    rec.lang = 'ko-KR';
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 3; // 더 많은 후보로 인식률 향상
+
+    rec.onresult = (e) => {
+      let sessionFinal = '', interim = '';
+      for (let i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          // 가장 긴 후보를 선택 (노래 가사는 긴 결과가 더 정확)
+          let best = e.results[i][0].transcript;
+          for (let j = 1; j < e.results[i].length; j++) {
+            if (e.results[i][j].transcript.length > best.length) {
+              best = e.results[i][j].transcript;
+            }
+          }
+          sessionFinal += best + ' ';
+        } else {
+          interim += e.results[i][0].transcript;
+        }
       }
+      // 이번 세션의 final 결과를 누적
+      if (sessionFinal.trim()) {
+        accumulatedText = (accumulatedText + ' ' + sessionFinal).trim();
+      }
+      // 전체 인식 텍스트 = 누적 + 현재 세션 final + interim
+      recognizedText = accumulatedText;
+      const display = (accumulatedText + ' ' + interim).trim();
+      if (display) {
+        document.getElementById('speechPlaceholder').style.display = 'none';
+        document.getElementById('speechText').style.display = '';
+        document.getElementById('speechText').textContent = display;
+        document.getElementById('speechBox').classList.add('listening');
+      }
+    };
+
+    rec.onerror = (e) => {
+      console.log('음성인식 오류:', e.error);
+      // no-speech, aborted, network 에러 시 즉시 재시작
+      if (isRecording && ['no-speech', 'aborted', 'network'].includes(e.error)) {
+        setTimeout(() => {
+          if (isRecording) restartRecognition();
+        }, 100);
+      }
+    };
+
+    rec.onend = () => {
+      // 녹음 중이면 항상 재시작 (끊김 방지)
+      if (isRecording) {
+        setTimeout(() => {
+          if (isRecording) restartRecognition();
+        }, 50);
+      }
+    };
+
+    return rec;
+  }
+
+  function restartRecognition() {
+    try {
+      if (speechRecognition) {
+        try { speechRecognition.stop(); } catch(e) {}
+      }
+      speechRecognition = createRecognizer();
+      speechRecognition.start();
+    } catch(e) {
+      console.log('음성인식 재시작 실패:', e);
+      // 재시작 실패 시 약간 대기 후 재시도
+      setTimeout(() => {
+        if (isRecording) restartRecognition();
+      }, 500);
     }
-    recognizedText = final.trim();
-    const display = (final + interim).trim();
-    if (display) {
-      document.getElementById('speechPlaceholder').style.display = 'none';
-      document.getElementById('speechText').style.display = '';
-      document.getElementById('speechText').textContent = display;
-      document.getElementById('speechBox').classList.add('listening');
-    }
-  };
-  speechRecognition.onerror = (e) => { console.log('음성인식 오류:', e.error); };
-  speechRecognition.onend = () => {
-    if (isRecording) {
-      try { speechRecognition.start(); } catch(e) {}
-    }
-  };
+  }
+
+  speechRecognition = createRecognizer();
   try { speechRecognition.start(); } catch(e) { console.log('음성인식 시작 실패:', e); }
 }
 
@@ -1208,6 +1259,7 @@ function retry() {
   pitchData=[]; volumeData=[]; onsetTimes=[];
   recentPitches=[]; recentVolumes=[];
   recognizedText = '';
+  accumulatedText = '';
   detectedSongInfo = null;
   goToCountdown();
 }
