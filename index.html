@@ -797,6 +797,7 @@ function startRecording() {
   startSpeechRecognition();
 
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
   const source = audioCtx.createMediaStreamSource(mediaStream);
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 2048;
@@ -892,8 +893,8 @@ function stopRecording() {
   clearInterval(timerInterval);
   cancelAnimationFrame(animFrameId);
   stopSpeechRecognition();
-  if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
-  if (audioCtx) audioCtx.close();
+  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+  if (audioCtx) { audioCtx.close().catch(()=>{}); audioCtx = null; analyser = null; }
 
   if (elapsed < CONFIG.minDuration) {
     alert(`최소 ${CONFIG.minDuration}초 이상 불러주세요!\n(${Math.floor(elapsed)}초 녹음됨)`);
@@ -1129,15 +1130,24 @@ async function showResult(result) {
   const { stability, melody, rhythm, volume, total } = result;
   const tier = COUPON_TIERS.find(t => total >= t.min);
 
-  // 곡 인식 (서버 API)
+  // 곡 인식 (서버 API + 인식된 가사 표시)
   const detectedCard = document.getElementById('detectedSong');
   detectedCard.classList.remove('visible');
-  detectedSongInfo = await searchSong(recognizedText);
-  if (detectedSongInfo && detectedSongInfo.found) {
+  if (recognizedText && recognizedText.trim().length >= 3) {
+    // 먼저 인식된 가사를 바로 표시
     detectedCard.classList.add('visible');
-    document.getElementById('detectedIcon').textContent = '🎵';
-    document.getElementById('detectedName').textContent = detectedSongInfo.name;
-    document.getElementById('detectedArtist').textContent = detectedSongInfo.artist;
+    document.getElementById('detectedIcon').textContent = '🎤';
+    document.getElementById('detectedName').textContent = recognizedText.trim().substring(0, 60) + (recognizedText.length > 60 ? '...' : '');
+    document.getElementById('detectedArtist').textContent = '가사 인식됨 · 곡 검색 중...';
+    // 서버 API로 곡 검색 시도
+    detectedSongInfo = await searchSong(recognizedText);
+    if (detectedSongInfo && detectedSongInfo.found) {
+      document.getElementById('detectedIcon').textContent = '🎵';
+      document.getElementById('detectedName').textContent = detectedSongInfo.name;
+      document.getElementById('detectedArtist').textContent = detectedSongInfo.artist;
+    } else {
+      document.getElementById('detectedArtist').textContent = '인식된 가사로 곡을 찾지 못했어요';
+    }
   }
 
   // 노래방 멘트
