@@ -4,82 +4,1279 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>차란 노래자랑</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-  /* ── 기본 디자인 ── */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: sans-serif; background: #fff; text-align: center; color: #1A1A1A; }
-  .screen { display: none; padding: 20px; min-height: 100vh; }
-  .screen.active { display: block; }
+  /* ── 리셋 (Firebase 기획전 내 삽입 대응) ── */
+  .charan-promo * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; }
+  .charan-promo {
+    font-family: -apple-system, 'Apple SD Gothic Neo', 'Pretendard', sans-serif;
+    color: #1A1A1A; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+    width: 100%; min-height: 100vh; position: relative; background: #fff;
+  }
+  .charan-promo .screen { display: none; padding: 0 20px; min-height: 100vh; }
+  .charan-promo .screen.active { display: block; text-align: center; }
+  .charan-promo .btn {
+    border: none; border-radius: 12px; font-weight: 700; cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s; -webkit-appearance: none;
+    font-family: inherit;
+  }
+  .charan-promo .btn:active { transform: scale(0.96); opacity: 0.85; }
 
-  /* ── 로고 스타일 (SVG) ── */
-  .logo-container { width: 280px; margin: 30px auto; }
-  .on-dark { filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
+  /* ═══ 1. 랜딩 ═══ */
+  .charan-promo .screen-inner {
+    display: block; max-width: 400px; margin: 0 auto; text-align: center;
+  }
+  .charan-promo #landing {
+    background: #fff;
+    padding-top: 48px; padding-bottom: 36px;
+  }
+  /* 차란 노래자랑 로고 — 모든 화면 고정 크기 Canvas */
+  .charan-promo .logo-area {
+    margin: 0 auto 16px; text-align: center;
+    width: 260px; height: 100px;
+  }
+  .charan-promo .logo-area canvas { display: block; width: 260px; height: 100px; }
+  /* 랜딩 마이크 이모티콘 */
+  .charan-promo .landing-visual {
+    width: 140px; height: 140px; border-radius: 50%;
+    background: #F3EEFF; display: flex; align-items: center; justify-content: center;
+    font-size: 56px; margin: 0 auto 24px; border: 2px solid #E0D4FA;
+    animation: cp-pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes cp-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.08); transform: scale(1); }
+    50% { box-shadow: 0 0 0 14px rgba(124,58,237,0.05); transform: scale(1.03); }
+  }
+  .charan-promo .landing-title { font-size: 24px; font-weight: 900; line-height: 1.4; margin-bottom: 8px; }
+  .charan-promo .landing-title span { color: #7C3AED; }
+  .charan-promo .landing-sub { font-size: 14px; color: #888; line-height: 1.7; margin-bottom: 28px; }
+  .charan-promo .landing-steps {
+    display: flex; gap: 6px; margin-bottom: 28px; width: 100%;
+    max-width: 340px; justify-content: center; margin-left: auto; margin-right: auto;
+  }
+  .charan-promo .landing-step {
+    background: #FAFAFA; border: 1px solid #F0F0F0;
+    border-radius: 12px; padding: 12px 6px; flex: 1; text-align: center;
+  }
+  .charan-promo .landing-step-icon { font-size: 20px; margin-bottom: 4px; }
+  .charan-promo .landing-step-num { font-size: 10px; color: #7C3AED; font-weight: 700; margin-bottom: 2px; }
+  .charan-promo .landing-step-label { font-size: 11px; color: #666; font-weight: 600; }
+  .charan-promo .btn-start {
+    width: 100%; max-width: 320px; padding: 16px;
+    background: #7C3AED; color: #fff; font-size: 16px; border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(124,58,237,0.25);
+  }
+  .charan-promo .landing-note { font-size: 12px; color: #AAA; margin-top: 12px; }
 
-  /* ── 컴포넌트 ── */
-  .visual-mic { font-size: 80px; margin: 40px 0; animation: bounce 2s infinite; }
-  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-  .btn { width: 100%; max-width: 300px; padding: 18px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 18px; }
-  .btn-start { background: #7C3AED; color: #fff; }
-  .result-card { background: linear-gradient(145deg, #1e0a3d, #4c2291); color: #fff; padding: 50px 20px; border-radius: 0 0 40px 40px; margin: -20px -20px 30px; }
-  .score { font-size: 100px; font-weight: 900; text-shadow: 0 0 20px #A5F3FC; }
+  /* ═══ 카운트다운 ═══ */
+  .charan-promo .countdown-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(255,255,255,0.96);
+    align-items: center; justify-content: center; z-index: 9999;
+    flex-direction: column;
+  }
+  .charan-promo .countdown-overlay.active { display: flex; }
+  .charan-promo .countdown-num { font-size: 100px; font-weight: 900; color: #7C3AED; animation: cp-count-pop 0.5s ease-out; }
+  @keyframes cp-count-pop {
+    0% { transform: scale(2); opacity: 0; }
+    60% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  .charan-promo .countdown-text { font-size: 15px; color: #888; margin-top: 12px; }
+
+  /* ═══ 2. 녹음 화면 ═══ */
+  .charan-promo #recording {
+    background: #fff;
+    padding-top: 36px; padding-bottom: 36px;
+  }
+  .charan-promo .rec-status { font-size: 14px; color: #666; margin-bottom: 18px; font-weight: 600; }
+  .charan-promo .speech-box {
+    width: 100%; max-width: 340px; min-height: 40px;
+    background: #F9F7FE; border: 1px solid #E0D4FA;
+    border-radius: 12px; padding: 10px 14px; margin: 0 auto 12px;
+    font-size: 14px; color: #444; line-height: 1.6; text-align: center;
+    transition: border-color 0.3s;
+  }
+  .charan-promo .speech-box.listening { border-color: #7C3AED; }
+  .charan-promo .speech-box .heard { color: #1A1A1A; font-weight: 600; }
+  .charan-promo .speech-box .placeholder { color: #BBB; font-size: 13px; }
+  .charan-promo .rec-visual-container { position: relative; width: 160px; height: 160px; margin: 0 auto 18px; }
+  .charan-promo .rec-ring { position: absolute; inset: 0; border-radius: 50%; border: 3px solid #F0ECF9; }
+  .charan-promo .rec-ring-active {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 3px solid #7C3AED; border-top-color: transparent;
+    animation: cp-spin 1s linear infinite;
+  }
+  @keyframes cp-spin { to { transform: rotate(360deg); } }
+  .charan-promo .rec-circle {
+    position: absolute; inset: 12px; border-radius: 50%;
+    background: #F9F7FE;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .charan-promo .rec-timer { font-size: 34px; font-weight: 900; color: #1A1A1A; font-variant-numeric: tabular-nums; }
+  .charan-promo .rec-timer-label { font-size: 11px; color: #AAA; margin-top: 2px; }
+  .charan-promo .waveform-container {
+    width: 100%; max-width: 340px; height: 56px; margin: 0 auto 12px;
+    overflow: hidden; border-radius: 12px;
+    background: #FAFAFA; border: 1px solid #F0F0F0;
+  }
+  .charan-promo #waveCanvas { width: 100%; height: 100%; }
+  .charan-promo .live-meters { display: flex; gap: 6px; width: 100%; max-width: 340px; margin: 0 auto 18px; }
+  .charan-promo .live-meter {
+    flex: 1; background: #FAFAFA; border: 1px solid #F0F0F0;
+    border-radius: 10px; padding: 8px 4px; text-align: center;
+  }
+  .charan-promo .live-meter-icon { font-size: 14px; margin-bottom: 2px; }
+  .charan-promo .live-meter-label { font-size: 9px; color: #AAA; margin-bottom: 3px; font-weight: 600; }
+  .charan-promo .live-meter-bar { height: 4px; background: #EEE; border-radius: 3px; overflow: hidden; }
+  .charan-promo .live-meter-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .charan-promo .btn-stop {
+    padding: 14px 48px;
+    background: #FEF2F2; border: 1.5px solid #FECACA;
+    color: #DC2626; font-size: 15px; border-radius: 12px;
+  }
+  .charan-promo .rec-tip { font-size: 12px; color: #BBB; margin-top: 12px; }
+
+  /* ═══ 3. 채점 중 ═══ */
+  .charan-promo #scoring { background: #fff; padding: 60px 20px; }
+  .charan-promo .scoring-spinner {
+    width: 70px; height: 70px; border-radius: 50%;
+    border: 4px solid #F0ECF9; border-top-color: #7C3AED;
+    animation: cp-spin 0.8s linear infinite; margin: 0 auto 20px;
+  }
+  .charan-promo .scoring-text { font-size: 17px; font-weight: 800; color: #1A1A1A; margin-bottom: 6px; }
+  .charan-promo .scoring-sub { font-size: 13px; color: #AAA; }
+  .charan-promo .scoring-items { margin: 20px auto 0; width: 100%; max-width: 260px; }
+  .charan-promo .scoring-item {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px; opacity: 0.3;
+    transition: opacity 0.4s;
+  }
+  .charan-promo .scoring-item.done { opacity: 1; }
+  .charan-promo .scoring-item-icon { font-size: 15px; }
+  .charan-promo .scoring-item-text { font-size: 13px; color: #666; }
+  .charan-promo .scoring-item-check { margin-left: auto; font-size: 13px; color: #7C3AED; opacity: 0; transition: opacity 0.3s; }
+  .charan-promo .scoring-item.done .scoring-item-check { opacity: 1; }
+
+  /* ═══ 4. 결과 — 노래방 기계 스타일 ═══ */
+  .charan-promo #result {
+    padding: 0; overflow: hidden;
+  }
+
+  /* 노래방 점수 영역 — 어두운 배경 */
+  .charan-promo .karaoke-score-area {
+    background: linear-gradient(135deg, #1a0533 0%, #2d1b69 30%, #0d1f3c 60%, #1a0533 100%);
+    padding: 36px 20px 32px;
+    position: relative; overflow: hidden;
+  }
+  .charan-promo .karaoke-score-area::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(139,92,246,0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 60%, rgba(236,72,153,0.25) 0%, transparent 50%),
+      radial-gradient(circle at 50% 80%, rgba(6,182,212,0.2) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .charan-promo .karaoke-notes {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+    opacity: 0.12;
+  }
+  .charan-promo .karaoke-note {
+    position: absolute; font-size: 30px;
+    animation: cp-float 6s ease-in-out infinite;
+  }
+  @keyframes cp-float {
+    0%,100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+    50% { transform: translateY(-20px) rotate(15deg); opacity: 0.8; }
+  }
+
+
+  /* 노래방 멘트 */
+  .charan-promo .karaoke-comment {
+    position: relative; z-index: 2;
+    font-size: 15px; color: #A5F3FC; font-weight: 700;
+    margin-bottom: 4px; text-shadow: 0 0 20px rgba(165,243,252,0.3);
+  }
+  .charan-promo .karaoke-comment-sub {
+    position: relative; z-index: 2;
+    font-size: 20px; font-weight: 900;
+    color: #d8b4fe;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px rgba(192,132,252,0.4);
+  }
+
+  /* 큰 점수 숫자 */
+  /* 점수 + '점' 인라인 */
+  .charan-promo .karaoke-score-row {
+    position: relative; z-index: 2;
+    display: flex; align-items: baseline; justify-content: center; gap: 4px;
+    margin-bottom: 16px;
+  }
+  .charan-promo .karaoke-big-score {
+    font-size: 100px; font-weight: 900; line-height: 1;
+    color: #e0d0ff;
+    text-shadow: 0 0 40px rgba(167,139,250,0.5), 0 0 80px rgba(103,232,249,0.3);
+    font-variant-numeric: tabular-nums;
+  }
+  .charan-promo .karaoke-score-label {
+    font-size: 28px; font-weight: 700; color: rgba(255,255,255,0.6);
+  }
+
+  /* 곡 인식 결과 — 제거됨 */
+
+  /* 세부 점수 — 밝은 영역 */
+  .charan-promo .result-detail-area {
+    background: #fff; padding: 24px 20px 32px;
+  }
+  .charan-promo .result-breakdown {
+    width: 100%; max-width: 340px;
+    background: #FAFAFA; border: 1px solid #F0F0F0;
+    border-radius: 14px; padding: 16px; margin: 0 auto 16px;
+  }
+  .charan-promo .result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid #F0F0F0;
+  }
+  .charan-promo .result-row:last-child { border-bottom: none; }
+  .charan-promo .result-row-label { font-size: 13px; color: #888; }
+  .charan-promo .result-row-bar { flex: 1; margin: 0 10px; height: 5px; background: #EEE; border-radius: 3px; overflow: hidden; }
+  .charan-promo .result-row-fill { height: 100%; border-radius: 3px; transition: width 1s ease-out; }
+  .charan-promo .result-row-value { font-size: 14px; font-weight: 700; color: #1A1A1A; min-width: 28px; text-align: right; }
+  .charan-promo .result-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0 0; margin-top: 4px;
+    border-top: 2px solid #E8E8E8;
+  }
+  .charan-promo .result-total-label { font-size: 14px; font-weight: 700; }
+  .charan-promo .result-total-value { font-size: 20px; font-weight: 900; color: #7C3AED; }
+
+  /* 쿠폰 */
+  .charan-promo .coupon-card {
+    width: 100%; max-width: 340px;
+    border-radius: 14px; padding: 20px;
+    position: relative; overflow: hidden; margin: 0 auto 18px;
+    background: #F9F7FE; border: 1.5px solid #E0D4FA;
+  }
+  .charan-promo .coupon-card::after {
+    content: ''; position: absolute;
+    width: 20px; height: 20px; background: #fff; border-radius: 50%;
+    top: 50%; right: -10px; transform: translateY(-50%);
+    border: 1px solid #E0D4FA;
+  }
+  .charan-promo .coupon-inner { position: relative; z-index: 1; }
+  .charan-promo .coupon-label { font-size: 12px; color: #7C3AED; margin-bottom: 6px; font-weight: 700; }
+  .charan-promo .coupon-name { font-size: 18px; font-weight: 900; color: #1A1A1A; margin-bottom: 3px; }
+  .charan-promo .coupon-desc { font-size: 13px; color: #666; margin-bottom: 10px; }
+  .charan-promo .coupon-code {
+    display: inline-block; padding: 6px 16px;
+    background: #fff; border: 1.5px dashed #D0C4F0;
+    border-radius: 8px; font-size: 14px; font-weight: 700;
+    letter-spacing: 2px; font-family: monospace; color: #7C3AED;
+  }
+  .charan-promo .coupon-expire { font-size: 11px; color: #BBB; margin-top: 8px; }
+
+  .charan-promo .result-actions { display: flex; gap: 10px; width: 100%; max-width: 340px; margin: 0 auto; }
+  .charan-promo .btn-retry {
+    flex: 1; padding: 14px;
+    background: #fff; border: 1.5px solid #E0D4FA;
+    color: #7C3AED; font-size: 14px;
+  }
+  .charan-promo .btn-share {
+    flex: 1; padding: 14px;
+    background: #7C3AED; color: #fff; font-size: 14px;
+    box-shadow: 0 4px 16px rgba(124,58,237,0.2);
+  }
+  .charan-promo .result-home {
+    font-size: 13px; color: #BBB; margin-top: 12px;
+    cursor: pointer; background: none; border: none;
+    text-decoration: underline; font-family: inherit;
+  }
+
+  .charan-promo .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 9998; }
+  .charan-promo .confetti {
+    position: absolute; width: 10px; height: 10px; border-radius: 2px;
+    animation: cp-confetti-fall linear forwards;
+  }
+  @keyframes cp-confetti-fall {
+    0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
 </style>
 </head>
 <body>
 
-<svg id="charanLogo" style="display:none;">
-  <symbol id="logo" viewBox="0 0 300 120">
-    <text x="50%" y="40" font-family="Arial Black, sans-serif" font-size="28" fill="#7C3AED" text-anchor="middle">차 란</text>
-    <text x="50%" y="100" font-family="Arial Black, sans-serif" font-size="55" fill="#7C3AED" text-anchor="middle" stroke="#fff" stroke-width="2">노래자랑</text>
-    <circle cx="260" cy="90" r="15" fill="#FBBF24" opacity="0.8" />
-    <text x="260" y="96" font-size="16" fill="#fff" text-anchor="middle">♪</text>
-  </symbol>
-</svg>
-
 <div class="charan-promo">
-  <div id="landing" class="screen active">
-    <div class="logo-container">
-      <svg width="100%" height="100%"><use xlink:href="#logo"/></svg>
-    </div>
-    <div class="visual-mic">🎤</div>
-    <h1>노래 부르고 쿠폰 받자!</h1>
-    <p style="color:#888; margin: 15px 0 40px;">AI가 분석하는 실시간 나의 가창력</p>
-    <button class="btn btn-start" onclick="next('recording')">노래 시작하기</button>
-  </div>
 
-  <div id="recording" class="screen">
-    <div class="logo-container">
-      <svg width="100%" height="100%"><use xlink:href="#logo"/></svg>
-    </div>
-    <div style="width:150px; height:150px; border:5px solid #7C3AED; border-radius:50%; margin:50px auto; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:bold;">
-      REC
-    </div>
-    <button class="btn" style="background:#FEF2F2; color:#DC2626;" onclick="next('result')">노래 끝내기</button>
-  </div>
-
-  <div id="result" class="screen" style="padding:0;">
-    <div class="result-card">
-        <div class="logo-container on-dark">
-            <svg width="100%" height="100%"><use xlink:href="#logo" fill="#fff"/></svg>
-        </div>
-        <p>당신의 점수는?</p>
-        <div class="score">98점</div>
-    </div>
-    <div style="padding:20px;">
-        <div style="border:2px dashed #D0C4F0; padding:20px; border-radius:20px; margin-bottom:20px;">
-            <p>전상품 15% 할인 쿠폰</p>
-            <h3 style="color:#7C3AED; margin-top:10px;">CHARAN-2026</h3>
-        </div>
-        <button class="btn btn-start" onclick="location.reload()">다시하기</button>
-    </div>
-  </div>
+<!-- ═══ 1. 랜딩 ═══ -->
+<div id="landing" class="screen active">
+<div class="screen-inner">
+  <div class="logo-area" id="logoMain"></div>
+  <div class="landing-visual">🎤</div>
+  <h1 class="landing-title">노래 부르고<br><span>쿠폰</span> 받자!</h1>
+  <p class="landing-sub">아무 노래나 불러보세요!<br>AI가 실력을 분석하고 쿠폰을 드려요</p>
+  <div class="landing-steps">
+    <div class="landing-step">
+      <div class="landing-step-icon">🎤</div>
+      <div class="landing-step-num">STEP 1</div>
+      <div class="landing-step-label">노래 부르기</div>
+    </div>
+    <div class="landing-step">
+      <div class="landing-step-icon">🧠</div>
+      <div class="landing-step-num">STEP 2</div>
+      <div class="landing-step-label">AI 분석</div>
+    </div>
+    <div class="landing-step">
+      <div class="landing-step-icon">📊</div>
+      <div class="landing-step-num">STEP 3</div>
+      <div class="landing-step-label">점수 확인</div>
+    </div>
+    <div class="landing-step">
+      <div class="landing-step-icon">🎫</div>
+      <div class="landing-step-num">STEP 4</div>
+      <div class="landing-step-label">쿠폰 받기</div>
+    </div>
+  </div>
+  <button class="btn btn-start" onclick="goToCountdown()">마이크 켜고 노래 부르기</button>
+</div>
 </div>
 
+<!-- 카운트다운 -->
+<div class="countdown-overlay" id="countdown">
+  <div class="logo-area" id="logoCountdown"></div>
+  <div class="countdown-num" id="countNum">3</div>
+  <div class="countdown-text">아무 노래나 준비하세요!</div>
+</div>
+
+<!-- ═══ 2. 녹음 ═══ -->
+<div id="recording" class="screen">
+<div class="screen-inner">
+  <div class="logo-area" id="logoRecording"></div>
+  <div class="rec-status" id="recStatus">자유롭게 노래를 불러주세요!</div>
+  <div class="rec-visual-container">
+    <div class="rec-ring"></div>
+    <div class="rec-ring-active"></div>
+    <div class="rec-circle">
+      <div class="rec-timer" id="recTimer">0:00</div>
+      <div class="rec-timer-label">경과 시간</div>
+    </div>
+  </div>
+  <div class="speech-box" id="speechBox">
+    <span class="placeholder" id="speechPlaceholder">🎵 노래를 부르면 가사가 여기에 표시돼요</span>
+    <span class="heard" id="speechText" style="display:none;"></span>
+  </div>
+  <div class="waveform-container">
+    <canvas id="waveCanvas"></canvas>
+  </div>
+  <div class="live-meters">
+    <div class="live-meter">
+      <div class="live-meter-icon">🎵</div>
+      <div class="live-meter-label">음정</div>
+      <div class="live-meter-bar"><div class="live-meter-fill" id="meterStability" style="width:0%;background:#7C3AED;"></div></div>
+    </div>
+    <div class="live-meter">
+      <div class="live-meter-icon">🎼</div>
+      <div class="live-meter-label">멜로디</div>
+      <div class="live-meter-bar"><div class="live-meter-fill" id="meterMelody" style="width:0%;background:#A78BFA;"></div></div>
+    </div>
+    <div class="live-meter">
+      <div class="live-meter-icon">🥁</div>
+      <div class="live-meter-label">리듬</div>
+      <div class="live-meter-bar"><div class="live-meter-fill" id="meterRhythm" style="width:0%;background:#C4B5FD;"></div></div>
+    </div>
+    <div class="live-meter">
+      <div class="live-meter-icon">🔊</div>
+      <div class="live-meter-label">음량</div>
+      <div class="live-meter-bar"><div class="live-meter-fill" id="meterVolume" style="width:0%;background:#DDD6FE;"></div></div>
+    </div>
+  </div>
+  <button class="btn btn-stop" onclick="stopRecording()">노래 끝내기</button>
+  <p class="rec-tip">최소 10초 이상 불러주세요 · 최대 30초</p>
+</div>
+</div>
+
+<!-- ═══ 3. 채점 중 ═══ -->
+<div id="scoring" class="screen">
+<div class="screen-inner" style="padding-top:40px;">
+  <div class="logo-area" id="logoScoring"></div>
+  <div class="scoring-spinner" style="margin:0 auto 20px;"></div>
+  <div class="scoring-text">AI가 분석하고 있어요</div>
+  <div class="scoring-sub">잠시만 기다려주세요...</div>
+  <div class="scoring-items">
+    <div class="scoring-item" id="si1"><span class="scoring-item-icon">🎵</span><span class="scoring-item-text">음정 분석 중...</span><span class="scoring-item-check">✓</span></div>
+    <div class="scoring-item" id="si2"><span class="scoring-item-icon">🎼</span><span class="scoring-item-text">멜로디 분석 중...</span><span class="scoring-item-check">✓</span></div>
+    <div class="scoring-item" id="si3"><span class="scoring-item-icon">🥁</span><span class="scoring-item-text">리듬 분석 중...</span><span class="scoring-item-check">✓</span></div>
+    <div class="scoring-item" id="si4"><span class="scoring-item-icon">🔊</span><span class="scoring-item-text">음량 분석 중...</span><span class="scoring-item-check">✓</span></div>
+    <div class="scoring-item" id="si5"><span class="scoring-item-icon">🔍</span><span class="scoring-item-text">곡 인식 중...</span><span class="scoring-item-check">✓</span></div>
+    <div class="scoring-item" id="si6"><span class="scoring-item-icon">⭐</span><span class="scoring-item-text">최종 점수 계산 중...</span><span class="scoring-item-check">✓</span></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ 4. 결과 — 노래방 기계 스타일 ═══ -->
+<div id="result" class="screen">
+
+  <!-- 공유용 캡처 영역 -->
+  <div id="shareCapture">
+  <!-- 상단: 노래방 점수 영역 (어두운 배경) -->
+  <div class="karaoke-score-area" style="width:100%;">
+    <!-- 떠다니는 음표 장식 -->
+    <div class="karaoke-notes">
+      <span class="karaoke-note" style="top:10%;left:8%;animation-delay:0s;">♪</span>
+      <span class="karaoke-note" style="top:20%;right:12%;animation-delay:1s;">♬</span>
+      <span class="karaoke-note" style="top:60%;left:5%;animation-delay:2s;">♫</span>
+      <span class="karaoke-note" style="top:50%;right:8%;animation-delay:0.5s;">♩</span>
+      <span class="karaoke-note" style="top:80%;left:15%;animation-delay:3s;">♪</span>
+      <span class="karaoke-note" style="top:75%;right:18%;animation-delay:1.5s;">♬</span>
+    </div>
+
+    <div class="logo-area" id="logoResult" style="margin-bottom:16px;"></div>
+
+    <!-- 곡 인식 결과 — 제거됨 -->
+
+    <!-- 멘트 -->
+    <div class="karaoke-comment" id="karaokeComment">환상적인 노래실력</div>
+    <div class="karaoke-comment-sub" id="karaokeCommentSub">아~주 칭찬해</div>
+
+    <!-- 큰 점수 + 점 (인라인) -->
+    <div class="karaoke-score-row">
+      <div class="karaoke-big-score" id="karaokeBigScore">0</div>
+      <div class="karaoke-score-label">점</div>
+    </div>
+  </div>
+
+  <!-- 하단: 세부 점수 + 쿠폰 (밝은 배경) -->
+  <div class="result-detail-area" style="width:100%;">
+    <div class="result-breakdown">
+      <div class="result-row">
+        <span class="result-row-label">🎵 음정</span>
+        <div class="result-row-bar"><div class="result-row-fill" id="barStability" style="width:0%;background:#7C3AED;"></div></div>
+        <span class="result-row-value" id="valStability">0</span>
+      </div>
+      <div class="result-row">
+        <span class="result-row-label">🎼 멜로디</span>
+        <div class="result-row-bar"><div class="result-row-fill" id="barMelody" style="width:0%;background:#A78BFA;"></div></div>
+        <span class="result-row-value" id="valMelody">0</span>
+      </div>
+      <div class="result-row">
+        <span class="result-row-label">🥁 리듬</span>
+        <div class="result-row-bar"><div class="result-row-fill" id="barRhythm" style="width:0%;background:#C4B5FD;"></div></div>
+        <span class="result-row-value" id="valRhythm">0</span>
+      </div>
+      <div class="result-row">
+        <span class="result-row-label">🔊 음량</span>
+        <div class="result-row-bar"><div class="result-row-fill" id="barVolume" style="width:0%;background:#DDD6FE;"></div></div>
+        <span class="result-row-value" id="valVolume">0</span>
+      </div>
+      <div class="result-total-row">
+        <span class="result-total-label">총점</span>
+        <span class="result-total-value" id="totalResult">0점</span>
+      </div>
+    </div>
+
+    <div class="coupon-card">
+      <div class="coupon-inner">
+        <div class="coupon-label">🎉 축하합니다! 쿠폰이 발급되었어요</div>
+        <div class="coupon-desc" id="couponDesc">-</div>
+        <div class="coupon-code" id="couponCode">-</div>
+        <div class="coupon-expire">쿠폰 사용 방법 : 차란 > 마이차란 > 내 쿠폰 > 쿠폰 등록하기</div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /#shareCapture -->
+
+  <div style="background:#fff; padding: 16px 20px 32px; text-align:center;">
+    <div class="result-actions">
+      <button class="btn btn-retry" onclick="retry()">다시 부르기</button>
+      <button class="btn btn-share" onclick="shareResult()">결과 공유하기</button>
+    </div>
+    <button class="result-home" onclick="goHome()">홈으로 돌아가기</button>
+  </div>
+</div>
+
+<div class="confetti-container" id="confetti"></div>
+
+</div><!-- /.charan-promo -->
+
 <script>
-  function next(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
+/* ════════════════════════════════════════════════════════════
+   차란 노래자랑 v6
+   ── 노래방 기계 스타일 점수 · 실제 가사 DB 매칭 ──
+   ════════════════════════════════════════════════════════════ */
+
+/* ═══ 로고 SVG (KBS 전국노래자랑 스타일) ═══ */
+// ── Canvas 로고 (밝은 배경 큰 로고 — 모든 화면 동일 고정 크기) ──
+function drawLogo(canvas, opts) {
+  const ctx = canvas.getContext('2d');
+  const { cx, topY, mainY, scale, dark } = opts;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // "차  란" 상단 뱃지
+  const subSize = Math.round(22 * scale);
+  ctx.save();
+  ctx.font = '900 ' + subSize + 'px -apple-system, "Apple SD Gothic Neo", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const subText = '차  란';
+  const subW = ctx.measureText(subText).width + 28 * scale;
+  const subH = subSize + 10 * scale;
+  const badgeR = subH / 2;
+  ctx.beginPath();
+  const bx = cx - subW/2, by = topY - subH/2;
+  ctx.roundRect(bx, by, subW, subH, badgeR);
+  ctx.fillStyle = '#7C3AED';
+  ctx.fill();
+  ctx.strokeStyle = '#5B21B6';
+  ctx.lineWidth = 2 * scale;
+  ctx.stroke();
+  ctx.fillStyle = '#FFF';
+  ctx.fillText(subText, cx, topY + 1);
+  ctx.restore();
+
+  // "노래자랑" 메인 — 각 글자별
+  const mainSize = Math.round(72 * scale);
+  ctx.save();
+  ctx.font = '900 ' + mainSize + 'px -apple-system, "Apple SD Gothic Neo", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.miterLimit = 2;
+  const chars = [
+    { ch: '노', color: '#7C3AED', stroke: '#4C1D95' },
+    { ch: '래', color: '#7C3AED', stroke: '#4C1D95' },
+    { ch: '자', color: '#FBBF24', stroke: '#B45309' },
+    { ch: '랑', color: '#FBBF24', stroke: '#B45309' },
+  ];
+  const charWidths = chars.map(c => ctx.measureText(c.ch).width);
+  const gap = 4 * scale;
+  const totalW = charWidths.reduce((a,b) => a+b, 0) + gap * (chars.length - 1);
+  let drawX = cx - totalW / 2;
+  chars.forEach((c, i) => {
+    const charCx = drawX + charWidths[i] / 2;
+    ctx.fillStyle = dark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.12)';
+    ctx.fillText(c.ch, charCx + 3*scale, mainY + 4*scale);
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.2)' : '#FFFFFF';
+    ctx.lineWidth = 14 * scale;
+    ctx.strokeText(c.ch, charCx, mainY);
+    ctx.strokeStyle = c.stroke;
+    ctx.lineWidth = 8 * scale;
+    ctx.strokeText(c.ch, charCx, mainY);
+    ctx.fillStyle = c.color;
+    ctx.fillText(c.ch, charCx, mainY);
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.beginPath();
+    ctx.rect(charCx - charWidths[i]/2, mainY - mainSize*0.52, charWidths[i], mainSize * 0.35);
+    ctx.clip();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(c.ch, charCx, mainY);
+    ctx.restore();
+    drawX += charWidths[i] + gap;
+  });
+  ctx.restore();
+
+  // 하단 장식선 + ★
+  const decoY = mainY + mainSize * 0.48;
+  const lineW = 60 * scale;
+  ctx.save();
+  const grad1 = ctx.createLinearGradient(cx - lineW - 12*scale, 0, cx - 12*scale, 0);
+  grad1.addColorStop(0, 'rgba(124,58,237,0.1)');
+  grad1.addColorStop(1, '#7C3AED');
+  ctx.strokeStyle = grad1;
+  ctx.lineWidth = 3 * scale;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx - lineW - 12*scale, decoY);
+  ctx.lineTo(cx - 12*scale, decoY);
+  ctx.stroke();
+  ctx.font = Math.round(16*scale) + 'px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FBBF24';
+  ctx.fillText('★', cx, decoY + 1);
+  const grad2 = ctx.createLinearGradient(cx + 12*scale, 0, cx + lineW + 12*scale, 0);
+  grad2.addColorStop(0, '#FBBF24');
+  grad2.addColorStop(1, 'rgba(251,191,36,0.1)');
+  ctx.strokeStyle = grad2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 12*scale, decoY);
+  ctx.lineTo(cx + lineW + 12*scale, decoY);
+  ctx.stroke();
+  ctx.restore();
+}
+// 모든 로고 슬롯에 고정 크기 Canvas 삽입
+document.addEventListener('DOMContentLoaded', () => {
+  ['logoMain','logoCountdown','logoRecording','logoScoring','logoResult'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cvs = document.createElement('canvas');
+    cvs.width = 520; cvs.height = 200;
+    cvs.style.width = '260px'; cvs.style.height = '100px';
+    el.appendChild(cvs);
+    const isDark = id === 'logoResult';
+    drawLogo(cvs, { cx: 260, topY: 36, mainY: 108, scale: 1, dark: isDark });
+  });
+});
+
+/*
+ * ╔══════════════════════════════════════════════════════════╗
+ * ║  📌 마케터가 수정할 부분은 여기뿐!                        ║
+ * ╚══════════════════════════════════════════════════════════╝
+ */
+const CONFIG = {
+  maxDuration: 30,   // 최대 녹음 시간(초)
+  minDuration: 10,   // 최소 녹음 시간(초)
+  dailyLimit: 3,     // 1일 참여 횟수
+  promoEndDate: '2026-04-30',
+};
+
+const COUPON_TIERS = [
+  { grade: 'S', min: 95, name: '', desc: '케어드 상품 15% 할인', color: '#fbbf24' },
+  { grade: 'A', min: 88, name: '', desc: '케어드 상품 15% 할인', color: '#7c3aed' },
+  { grade: 'B', min: 82, name: '', desc: '케어드 상품 15% 할인', color: '#64748b' },
+  { grade: 'C', min: 76, name: '', desc: '케어드 상품 15% 할인', color: '#b45309' },
+  { grade: 'D', min: 70, name: '', desc: '케어드 상품 15% 할인', color: '#6b7280' },
+  { grade: 'E', min: 55, name: '', desc: '케어드 상품 15% 할인', color: '#94a3b8' },
+  { grade: 'F', min: 0,  name: '', desc: '케어드 상품 15% 할인', color: '#9ca3af' },
+];
+
+const WEIGHTS = { stability: 30, melody: 30, rhythm: 20, volume: 20 };
+
+/*
+ * ╔══════════════════════════════════════════════════════════╗
+ * ║  📌 노래방 스타일 멘트 (점수 구간별)                      ║
+ * ╚══════════════════════════════════════════════════════════╝
+ */
+const COMMENTS = {
+  S: [
+    { main: '환상적인 노래실력', sub: '아~주 칭찬해' },
+    { main: '완벽한 무대였습니다', sub: '가수 데뷔 각' },
+    { main: '프로듀서가 관심을 보입니다', sub: 'AI도 소름 돋았어요' },
+    { main: '전국노래자랑 감', sub: '땡~! 합격입니다' },
+    { main: '노래방 사장님이 울고 갑니다', sub: '이 점수 실화인가요' },
+  ],
+  A: [
+    { main: '숨은 실력자 발견', sub: '마이크 독점하는 타입' },
+    { main: '가수 못지않은 실력', sub: '노래방 점수 90점대 단골이시죠' },
+    { main: '목소리에 꿀 바르셨나요', sub: 'AI도 기분이 좋아졌어요' },
+    { main: '인싸력 만렙 인정', sub: '2차 노래방에서 센터 확정' },
+    { main: '잘 부르시네요', sub: '한 곡 더 해주세요' },
+  ],
+  B: [
+    { main: '나쁘지 않은데요', sub: '한 곡 더 어때요' },
+    { main: '분위기 메이커 타입', sub: '실력보다 열정이 중요한 거 아시죠' },
+    { main: '감성 충만한 무대', sub: '기술은 연습, 감성은 타고나는 것' },
+    { main: '박자감은 좋아요', sub: '음정이 좀 자유로우시네요' },
+  ],
+  C: [
+    { main: '용기에 박수를', sub: '부른다는 것 자체가 멋져요' },
+    { main: '개성 있는 음색이시네요', sub: '세상에 못하는 노래는 없어요' },
+    { main: '노래방에선 탬버린 담당', sub: '리듬감은 타고나신 듯' },
+    { main: '열정만큼은 S등급', sub: '다음엔 더 잘할 수 있어요' },
+  ],
+  D: [
+    { main: '새로운 장르를 개척하시는 건가요', sub: '세상에 없던 음악을 들었습니다' },
+    { main: '참여에 의의를 두겠습니다', sub: '쿠폰은 드릴게요 걱정 마세요' },
+    { main: '독보적인 스타일', sub: '아무도 따라 할 수 없는 개성' },
+    { main: '괜찮아요 노래만 못하는 거예요', sub: '다른 재능이 분명 있으실 거예요' },
+  ],
+  E: [
+    { main: '음악이 아닌 소리가 감지되었어요', sub: '노래를 불러주셔야 점수가 올라가요!' },
+    { main: '혹시 기침 대회에 참가하신 건가요?', sub: '노래를 불러야 점수가 나와요 😄' },
+    { main: '마이크가 당황하고 있어요', sub: '멜로디 있는 소리를 기다리는 중...' },
+    { main: '음... 노래가 아닌 것 같아요', sub: '자신 있게 한 곡 불러주세요!' },
+  ],
+  F: [
+    { main: '노래가 들리지 않아요', sub: '마이크 가까이에서 불러주세요' },
+    { main: '혹시 묵음으로 부르셨나요?', sub: '소리가 감지되지 않았어요' },
+    { main: '마이크가 당신의 노래를 기다리고 있어요', sub: '다시 한번 도전해보세요!' },
+    { main: '조용한 무대였습니다...', sub: '다음엔 자신 있게 불러주세요!' },
+  ],
+};
+
+
+
+
+
+/* ═══ 상태 변수 ═══ */
+let audioCtx = null, analyser = null, mediaStream = null;
+let isRecording = false, recordingStart = 0;
+let timerInterval = null, animFrameId = null;
+let pitchData = [], volumeData = [], onsetTimes = [];
+let recentPitches = [], recentVolumes = [], lastOnsetTime = 0;
+let speechRecognition = null;
+let recognizedText = '';
+let accumulatedText = ''; // 재시작 시에도 유지되는 누적 텍스트
+let detectedSongInfo = null; // 서버에서 인식된 곡 정보
+
+
+/* ═══ 화면 전환 ═══ */
+function showScreen(id) {
+  document.querySelectorAll('.charan-promo .screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const promo = document.querySelector('.charan-promo');
+  if (promo) promo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function goHome() { showScreen('landing'); }
+
+
+/* ═══ 마이크 → 카운트다운 → 녹음 ═══ */
+async function goToCountdown() {
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('이 브라우저에서는 마이크를 사용할 수 없습니다.');
+      return;
+    }
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    console.log('마이크 오류:', e.name, e.message);
+    if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+      alert('마이크 접근 권한이 필요합니다.\n브라우저 설정에서 마이크 권한을 허용해주세요.');
+    } else if (e.name === 'NotFoundError') {
+      alert('마이크를 찾을 수 없습니다.');
+    } else {
+      alert('마이크 오류: ' + e.message);
+    }
+    return;
+  }
+
+  const overlay = document.getElementById('countdown');
+  const numEl = document.getElementById('countNum');
+  overlay.classList.add('active');
+  let count = 3;
+  numEl.textContent = count;
+
+  const iv = setInterval(() => {
+    count--;
+    if (count > 0) {
+      numEl.textContent = count;
+      numEl.style.animation = 'none';
+      numEl.offsetHeight;
+      numEl.style.animation = 'cp-count-pop 0.5s ease-out';
+    } else {
+      clearInterval(iv);
+      overlay.classList.remove('active');
+      startRecording();
+    }
+  }, 1000);
+}
+
+
+/* ═══ 녹음 + 실시간 분석 + 음성 인식 ═══ */
+function startRecording() {
+  showScreen('recording');
+  document.getElementById('recStatus').textContent = '자유롭게 노래를 불러주세요!';
+  document.getElementById('recStatus').style.color = '#666';
+
+  pitchData = []; volumeData = []; onsetTimes = [];
+  recentPitches = []; recentVolumes = []; lastOnsetTime = 0;
+  recognizedText = '';
+  accumulatedText = '';
+  detectedSongInfo = null;
+  document.getElementById('speechText').textContent = '';
+  document.getElementById('speechText').style.display = 'none';
+  document.getElementById('speechPlaceholder').style.display = '';
+
+  startSpeechRecognition();
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+  const source = audioCtx.createMediaStreamSource(mediaStream);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  source.connect(analyser);
+
+  isRecording = true;
+  recordingStart = Date.now();
+  timerInterval = setInterval(updateTimer, 100);
+
+  const canvas = document.getElementById('waveCanvas');
+  canvas.width = canvas.offsetWidth * 2;
+  canvas.height = canvas.offsetHeight * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+
+  function loop() {
+    if (!isRecording) return;
+    animFrameId = requestAnimationFrame(loop);
+    const buffer = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(buffer);
+    const elapsed = (Date.now() - recordingStart) / 1000;
+    drawWaveform(ctx, buffer, canvas.offsetWidth, canvas.offsetHeight);
+
+    let rms = 0;
+    for (let i = 0; i < buffer.length; i++) rms += buffer[i] * buffer[i];
+    rms = Math.sqrt(rms / buffer.length);
+    volumeData.push({ time: elapsed, rms });
+    recentVolumes.push(rms);
+    if (recentVolumes.length > 30) recentVolumes.shift();
+
+    if (rms > 0.03 && elapsed - lastOnsetTime > 0.2) {
+      const prevAvg = recentVolumes.slice(-10, -1).reduce((a, b) => a + b, 0) / 9 || 0;
+      if (rms > prevAvg * 1.8) { onsetTimes.push(elapsed); lastOnsetTime = elapsed; }
+    }
+
+    const freq = detectPitch(buffer, audioCtx.sampleRate);
+    if (freq && freq > 60 && freq < 1200) {
+      const midi = freqToMidi(freq);
+      pitchData.push({ time: elapsed, freq, midi });
+      recentPitches.push(midi);
+      if (recentPitches.length > 30) recentPitches.shift();
+    }
+
+    if (pitchData.length % 3 === 0) updateLiveMeters();
+    if (elapsed >= CONFIG.maxDuration) stopRecording();
+  }
+  loop();
+}
+
+function updateTimer() {
+  const elapsed = (Date.now() - recordingStart) / 1000;
+  const mins = Math.floor(elapsed / 60);
+  const secs = Math.floor(elapsed % 60);
+  document.getElementById('recTimer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+  const remaining = CONFIG.maxDuration - elapsed;
+  if (remaining <= 5 && remaining > 0) {
+    document.getElementById('recStatus').textContent = `${Math.ceil(remaining)}초 남았어요!`;
+    document.getElementById('recStatus').style.color = '#DC2626';
+  }
+}
+
+function updateLiveMeters() {
+  if (recentPitches.length < 5) return;
+  const pMean = recentPitches.reduce((a, b) => a + b, 0) / recentPitches.length;
+  const pStd = Math.sqrt(recentPitches.reduce((a, v) => a + (v - pMean) ** 2, 0) / recentPitches.length);
+  document.getElementById('meterStability').style.width = Math.max(0, Math.min(100, 100 - pStd * 15)) + '%';
+
+  const range = Math.max(...recentPitches) - Math.min(...recentPitches);
+  document.getElementById('meterMelody').style.width = Math.min(100, range * 8) + '%';
+
+  let rhythmPct = 50;
+  if (onsetTimes.length > 3) {
+    const ivs = []; for (let i=1;i<onsetTimes.length;i++) ivs.push(onsetTimes[i]-onsetTimes[i-1]);
+    const m = ivs.reduce((a,b)=>a+b,0)/ivs.length;
+    const s = Math.sqrt(ivs.reduce((a,v)=>a+(v-m)**2,0)/ivs.length);
+    rhythmPct = Math.max(0, Math.min(100, 100 - (s/(m||1))*100));
+  }
+  document.getElementById('meterRhythm').style.width = rhythmPct + '%';
+
+  if (recentVolumes.length > 5) {
+    const vm = recentVolumes.reduce((a,b)=>a+b,0)/recentVolumes.length;
+    const vs = Math.sqrt(recentVolumes.reduce((a,v)=>a+(v-vm)**2,0)/recentVolumes.length);
+    const cv = vs/(vm||1);
+    const vp = cv>0.1&&cv<0.6 ? 85 : cv<=0.1 ? 60 : Math.max(20,80-cv*50);
+    document.getElementById('meterVolume').style.width = Math.min(100,vp) + '%';
+  }
+}
+
+function stopRecording() {
+  const elapsed = (Date.now() - recordingStart) / 1000;
+  window._lastDuration = Math.round(elapsed);
+  isRecording = false;
+  clearInterval(timerInterval);
+  cancelAnimationFrame(animFrameId);
+  stopSpeechRecognition();
+  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+  if (audioCtx) { audioCtx.close().catch(()=>{}); audioCtx = null; analyser = null; }
+
+  if (elapsed < CONFIG.minDuration) {
+    alert(`최소 ${CONFIG.minDuration}초 이상 불러주세요!\n(${Math.floor(elapsed)}초 녹음됨)`);
+    goHome();
+    return;
+  }
+  goToScoring();
+}
+
+
+/* ═══ 채점 (70~100점 범위) ═══ */
+/* ═══ 음성 인식 (Web Speech API) — 노래 가사 인식 최적화 ═══ */
+function startSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { console.log('SpeechRecognition 미지원'); return; }
+
+  function createRecognizer() {
+    const rec = new SR();
+    rec.lang = 'ko-KR';
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 3;
+
+    rec.onresult = (e) => {
+      let interim = '';
+      // e.resultIndex: 변경된 결과의 시작 인덱스 → 새 결과만 처리
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          let best = e.results[i][0].transcript;
+          for (let j = 1; j < e.results[i].length; j++) {
+            if (e.results[i][j].transcript.length > best.length) {
+              best = e.results[i][j].transcript;
+            }
+          }
+          accumulatedText = (accumulatedText + ' ' + best).trim();
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      recognizedText = accumulatedText;
+      const display = accumulatedText + (interim ? ' ' + interim : '');
+      if (display.trim()) {
+        document.getElementById('speechPlaceholder').style.display = 'none';
+        document.getElementById('speechText').style.display = '';
+        document.getElementById('speechText').textContent = display.trim();
+        document.getElementById('speechBox').classList.add('listening');
+      }
+    };
+
+    rec.onerror = (e) => {
+      console.log('음성인식 오류:', e.error);
+      if (isRecording && ['no-speech', 'aborted', 'network'].includes(e.error)) {
+        setTimeout(() => { if (isRecording) restartRecognition(); }, 100);
+      }
+    };
+
+    rec.onend = () => {
+      if (isRecording) {
+        setTimeout(() => { if (isRecording) restartRecognition(); }, 50);
+      }
+    };
+
+    return rec;
+  }
+
+  function restartRecognition() {
+    try {
+      if (speechRecognition) { try { speechRecognition.stop(); } catch(e) {} }
+      speechRecognition = createRecognizer();
+      speechRecognition.start();
+    } catch(e) {
+      console.log('음성인식 재시작 실패:', e);
+      setTimeout(() => { if (isRecording) restartRecognition(); }, 500);
+    }
+  }
+
+  speechRecognition = createRecognizer();
+  try { speechRecognition.start(); } catch(e) { console.log('음성인식 시작 실패:', e); }
+}
+
+function stopSpeechRecognition() {
+  if (speechRecognition) {
+    try { speechRecognition.stop(); } catch(e) {}
+    speechRecognition = null;
+  }
+}
+
+/* ═══ 서버 API로 곡 검색 ═══ */
+async function searchSong(text) {
+  if (!text || text.trim().length < 3) return null;
+  try {
+    const resp = await fetch('/api/search-song', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const data = await resp.json();
+    if (data.found) return data;
+  } catch (e) {
+    console.log('곡 검색 실패:', e);
+  }
+  return null;
+}
+
+function goToScoring() {
+  showScreen('scoring');
+  ['si1','si2','si3','si4','si5','si6'].forEach((id, i) => {
+    document.getElementById(id).classList.remove('done');
+    setTimeout(() => document.getElementById(id).classList.add('done'), 350 * (i + 1));
+  });
+  setTimeout(() => showResult(calculateScore()), 3000);
+}
+
+function calculateScore() {
+  // ★ 무음/미수음 감지: 음정 데이터가 거의 없으면 50점
+  const silentThreshold = 5;
+  if (pitchData.length <= silentThreshold) {
+    return {
+      stability: 50, melody: 50, rhythm: 50, volume: 50,
+      total: 50, isSilent: true,
+    };
+  }
+
+  // ★ 비음악적 소리 감지 (기침, 잡음 등): 60점 고정
+  const isNonMusical = (() => {
+    const durationSec = (Date.now() - recordingStart) / 1000;
+    const pitchDensity = pitchData.length / Math.max(1, durationSec);
+    // 조건1: 음정 밀도 낮음 (노래는 보통 초당 4개 이상)
+    const sparsePitch = pitchDensity < 2.5;
+    // 조건2: 음정 변화 매우 불규칙 (멜로디 없는 잡음)
+    let erraticPitch = false;
+    if (pitchData.length > 6) {
+      const midis = pitchData.map(p => p.midi);
+      const intervals = [];
+      for (let i = 1; i < midis.length; i++) intervals.push(Math.abs(midis[i] - midis[i-1]));
+      const avgInterval = intervals.reduce((a,b) => a+b, 0) / intervals.length;
+      erraticPitch = avgInterval > 5;
+    }
+    // 조건3: 지속음 부족 (연속 비슷한 음정 구간 적음)
+    let sustainedCount = 0;
+    if (pitchData.length > 6) {
+      const midis = pitchData.map(p => p.midi);
+      for (let i = 1; i < midis.length; i++) {
+        if (Math.abs(midis[i] - midis[i-1]) < 1.5) sustainedCount++;
+      }
+    }
+    const sustainRatio = pitchData.length > 1 ? sustainedCount / (pitchData.length - 1) : 0;
+    const noSustain = sustainRatio < 0.25;
+    // 조건4: 음성 인식 텍스트 없음 (언어가 아닌 소리)
+    const noSpeech = !recognizedText || recognizedText.trim().length < 2;
+    // 최종: (희박 OR 불규칙) AND 지속음 없음 AND 언어 아님
+    return (sparsePitch || erraticPitch) && noSustain && noSpeech;
+  })();
+  if (isNonMusical) {
+    return {
+      stability: 60, melody: 60, rhythm: 60, volume: 60,
+      total: 60, isNonMusical: true,
+    };
+  }
+
+  let stabilityRaw = 50;
+  if (pitchData.length > 10) {
+    const ws = 6, stds = [];
+    for (let i = 0; i <= pitchData.length - ws; i += 3) {
+      const w = pitchData.slice(i, i + ws).map(p => p.midi);
+      const m = w.reduce((a,b)=>a+b,0)/w.length;
+      stds.push(Math.sqrt(w.reduce((a,v)=>a+(v-m)**2,0)/w.length));
+    }
+    stabilityRaw = Math.max(0, Math.min(100, 100 - (stds.reduce((a,b)=>a+b,0)/stds.length) * 25));
+  }
+
+  let melodyRaw = 50;
+  if (pitchData.length > 10) {
+    const midis = pitchData.map(p => p.midi);
+    const range = Math.max(...midis) - Math.min(...midis);
+    let rPts = range >= 5 && range <= 18 ? 80 + (range-5)*1.5 : range < 5 ? range*12 : Math.max(40,100-(range-18)*3);
+    const ivs = []; for (let i=1;i<midis.length;i++) ivs.push(Math.abs(midis[i]-midis[i-1]));
+    const ai = ivs.reduce((a,b)=>a+b,0)/ivs.length;
+    let sPts = ai>=0.5&&ai<=4 ? 85 : ai<0.5 ? 50 : Math.max(30,85-(ai-4)*10);
+    let vib = 0, vc = 0;
+    for (let i=2;i<midis.length;i++) {
+      const d1=midis[i-1]-midis[i-2], d2=midis[i]-midis[i-1];
+      if (d1*d2<0 && Math.abs(d1)<1.5 && Math.abs(d2)<1.5) vc++;
+    }
+    if (vc > midis.length*0.1) vib = 10;
+    melodyRaw = Math.min(100, rPts*0.4 + sPts*0.5 + vib);
+  }
+
+  let rhythmRaw = 50;
+  if (onsetTimes.length > 4) {
+    const ivs = []; for (let i=1;i<onsetTimes.length;i++) ivs.push(onsetTimes[i]-onsetTimes[i-1]);
+    const m = ivs.reduce((a,b)=>a+b,0)/ivs.length;
+    const s = Math.sqrt(ivs.reduce((a,v)=>a+(v-m)**2,0)/ivs.length);
+    rhythmRaw = Math.max(0, Math.min(100, 100 - (s/(m||1))*80));
+    if (onsetTimes.length / ((Date.now()-recordingStart)/1000) < 0.5) rhythmRaw *= 0.7;
+  }
+
+  let volumeRaw = 50;
+  if (volumeData.length > 20) {
+    const vols = volumeData.map(v=>v.rms).filter(v=>v>0.005);
+    if (vols.length > 10) {
+      const m = vols.reduce((a,b)=>a+b,0)/vols.length;
+      const s = Math.sqrt(vols.reduce((a,v)=>a+(v-m)**2,0)/vols.length);
+      const cv = s/(m||1);
+      if (cv>=0.15&&cv<=0.5) volumeRaw = 80+(0.5-Math.abs(cv-0.35))*60;
+      else if (cv<0.15) volumeRaw = 55+cv*200;
+      else volumeRaw = Math.max(20,80-(cv-0.5)*60);
+      if (m < 0.02) volumeRaw *= 0.6;
+    }
+  }
+
+  const rawTotal = Math.round(
+    (stabilityRaw*WEIGHTS.stability + melodyRaw*WEIGHTS.melody +
+     rhythmRaw*WEIGHTS.rhythm + volumeRaw*WEIGHTS.volume) / 100
+  );
+
+  const mapTo70_100 = (raw) => Math.round(70 + (Math.max(0, Math.min(100, raw)) / 100) * 30);
+
+  return {
+    stability: mapTo70_100(stabilityRaw),
+    melody: mapTo70_100(melodyRaw),
+    rhythm: mapTo70_100(rhythmRaw),
+    volume: mapTo70_100(volumeRaw),
+    total: mapTo70_100(rawTotal),
+  };
+}
+
+
+/* ═══ 결과 화면 (노래방 기계 스타일) ═══ */
+async function showResult(result) {
+  showScreen('result');
+
+  const { stability, melody, rhythm, volume, total } = result;
+  const tier = COUPON_TIERS.find(t => total >= t.min);
+
+  // 곡 인식 UI — 제거됨
+
+  // 노래방 멘트
+  const commentList = COMMENTS[tier.grade];
+  const comment = commentList[Math.floor(Math.random() * commentList.length)];
+  document.getElementById('karaokeComment').textContent = comment.main;
+  document.getElementById('karaokeCommentSub').textContent = comment.sub;
+
+  // 큰 점수 애니메이션
+  animateNum('karaokeBigScore', 0, total, 2000, v => v);
+
+  // 등급 뱃지 — 제거됨 (표시 안 함)
+
+  // 세부 점수
+  setTimeout(() => {
+    setBar('barStability', 'valStability', stability);
+    setBar('barMelody', 'valMelody', melody);
+    setBar('barRhythm', 'valRhythm', rhythm);
+    setBar('barVolume', 'valVolume', volume);
+    document.getElementById('totalResult').textContent = total + '점';
+  }, 300);
+
+  // 쿠폰
+  document.getElementById('couponDesc').textContent = tier.desc;
+  document.getElementById('couponCode').textContent = generateCode();
+
+  if (tier.grade === 'S' || tier.grade === 'A') launchConfetti();
+}
+
+function setBar(barId, valId, score) {
+  document.getElementById(barId).style.width = score + '%';
+  document.getElementById(valId).textContent = score;
+}
+
+function animateNum(elId, from, to, dur, fmt) {
+  const el = document.getElementById(elId);
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(Math.round(from + (to - from) * eased));
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function generateCode() {
+  return 'RELOVE';
+}
+
+function launchConfetti() {
+  const ct = document.getElementById('confetti'); ct.innerHTML = '';
+  const colors = ['#7C3AED','#A78BFA','#C4B5FD','#F59E0B','#FCD34D','#67E8F9','#F0ABFC'];
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div'); el.className = 'confetti';
+    el.style.left = Math.random()*100+'%';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration = (2+Math.random()*2)+'s';
+    el.style.animationDelay = Math.random()*0.5+'s';
+    el.style.width = (6+Math.random()*8)+'px';
+    el.style.height = (6+Math.random()*8)+'px';
+    ct.appendChild(el);
+  }
+  setTimeout(() => { ct.innerHTML = ''; }, 4500);
+}
+
+
+/* ═══ 음정 탐지 ═══ */
+function detectPitch(buf, sr) {
+  const SIZE = buf.length;
+  let rms = 0;
+  for (let i = 0; i < SIZE; i++) rms += buf[i]*buf[i];
+  rms = Math.sqrt(rms/SIZE);
+  if (rms < 0.01) return null;
+  let bestR = 0, bestK = -1;
+  for (let k = Math.floor(sr/1000); k < Math.floor(sr/60); k++) {
+    let sum = 0;
+    for (let i = 0; i < SIZE - k; i++) sum += buf[i]*buf[i+k];
+    if (sum > bestR) { bestR = sum; bestK = k; }
+  }
+  if (bestK === -1 || bestR < 0.01) return null;
+  return sr / bestK;
+}
+
+function freqToMidi(f) { return 69 + 12 * Math.log2(f/440); }
+
+function drawWaveform(ctx, buf, w, h) {
+  ctx.fillStyle = 'rgba(250,250,250,0.4)';
+  ctx.fillRect(0, 0, w, h);
+  ctx.lineWidth = 2; ctx.strokeStyle = '#7C3AED'; ctx.beginPath();
+  const sw = w / buf.length; let x = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const y = (buf[i]*0.5+0.5)*h;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    x += sw;
+  }
+  ctx.stroke();
+}
+
+
+/* ═══ 재도전 & 공유 ═══ */
+function retry() {
+  pitchData=[]; volumeData=[]; onsetTimes=[];
+  recentPitches=[]; recentVolumes=[];
+  recognizedText = '';
+  accumulatedText = '';
+  detectedSongInfo = null;
+  goToCountdown();
+}
+
+function _getShareText() {
+  const dur = window._lastDuration || 0;
+  const score = document.getElementById('totalResult').textContent;
+  const couponDesc = document.getElementById('couponDesc').textContent;
+  const url = window.location.origin + '/';
+  return `차란 노래자랑에서 ${dur}초 노래하고 ${score}을 받았어요! 상품으로 ${couponDesc} 쿠폰을 받았어요🎉\n\n차란 노래자랑 도전하고 쿠폰 받기\n${url}`;
+}
+
+async function shareResult() {
+  const captureEl = document.getElementById('shareCapture');
+  const btn = document.querySelector('.btn-share');
+  const origText = btn.textContent;
+  btn.textContent = '이미지 생성 중...';
+  btn.disabled = true;
+  try {
+    const canvas = await html2canvas(captureEl, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: null,
+      logging: false,
+      onclone: (doc) => {
+        const notes = doc.querySelectorAll('.karaoke-note');
+        notes.forEach(n => n.style.animation = 'none');
+      }
+    });
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], 'charan-singing-result.png', { type: 'image/png' });
+      const text = _getShareText();
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ title: '차란 노래자랑', text, files: [file] });
+      } else if (navigator.share) {
+        await navigator.share({ title: '차란 노래자랑', text });
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'charan-singing-result.png';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        alert('결과 이미지가 저장되었어요!');
+      }
+      btn.textContent = origText;
+      btn.disabled = false;
+    }, 'image/png');
+  } catch (e) {
+    console.error(e);
+    btn.textContent = origText;
+    btn.disabled = false;
+    const text = _getShareText();
+    if (navigator.share) {
+      navigator.share({ title: '차란 노래자랑', text });
+    } else {
+      navigator.clipboard.writeText(text).then(() => alert('결과가 복사되었어요!'));
+    }
+  }
+}
 </script>
 </body>
-</html>
+</html>     여기에서 firebase에 업로드 하려고 했던 firebase관련된건 모두 삭제해주고, 타이틀 부분을 첨부파일의 로고를 크롭해서 모든 페이지에서 현재 타이틀 영역에 고정되어 있게 해줘. 대신 로고가 부각 되도록 여백을 크롭해서 사용해줘
