@@ -59,7 +59,7 @@
     background: #FAFAFA; border: 1px solid #F0F0F0;
     border-radius: 12px; padding: 12px 6px; flex: 1; text-align: center;
   }
-  .charan-promo .landing-step-icon { font-size: 20px; margin-bottom: 4px; }
+  .charan-promo .landing-step-icon { font-size: 20px; margin-bottom: 4px; filter: grayscale(1); opacity: 0.5; }
   .charan-promo .landing-step-num { font-size: 10px; color: #7C3AED; font-weight: 700; margin-bottom: 2px; }
   .charan-promo .landing-step-label { font-size: 11px; color: #666; font-weight: 600; }
   .charan-promo .btn-start {
@@ -125,7 +125,7 @@
     flex: 1; background: #FAFAFA; border: 1px solid #F0F0F0;
     border-radius: 10px; padding: 8px 4px; text-align: center;
   }
-  .charan-promo .live-meter-icon { font-size: 14px; margin-bottom: 2px; }
+  .charan-promo .live-meter-icon { font-size: 14px; margin-bottom: 2px; filter: grayscale(1); opacity: 0.5; }
   .charan-promo .live-meter-label { font-size: 9px; color: #AAA; margin-bottom: 3px; font-weight: 600; }
   .charan-promo .live-meter-bar { height: 4px; background: #EEE; border-radius: 3px; overflow: hidden; }
   .charan-promo .live-meter-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
@@ -150,7 +150,7 @@
     transition: opacity 0.4s;
   }
   .charan-promo .scoring-item.done { opacity: 1; }
-  .charan-promo .scoring-item-icon { font-size: 15px; }
+  .charan-promo .scoring-item-icon { font-size: 15px; filter: grayscale(1); opacity: 0.5; }
   .charan-promo .scoring-item-text { font-size: 13px; color: #666; }
   .charan-promo .scoring-item-check { margin-left: auto; font-size: 13px; color: #7C3AED; opacity: 0; transition: opacity 0.3s; }
   .charan-promo .scoring-item.done .scoring-item-check { opacity: 1; }
@@ -213,7 +213,6 @@
   .charan-promo .karaoke-score-label {
     font-size: 28px; font-weight: 700; color: rgba(255,255,255,0.6);
   }
-  /* 곡 인식 결과 — 제거됨 */
   /* 세부 점수 — 밝은 영역 */
   .charan-promo .result-detail-area {
     background: #fff; padding: 24px 20px 32px;
@@ -228,7 +227,7 @@
     padding: 7px 0; border-bottom: 1px solid #F0F0F0;
   }
   .charan-promo .result-row:last-child { border-bottom: none; }
-  .charan-promo .result-row-label { font-size: 13px; color: #888; }
+  .charan-promo .result-row-label { font-size: 13px; color: #888; filter: grayscale(1); opacity: 0.5; }
   .charan-promo .result-row-bar { flex: 1; margin: 0 10px; height: 5px; background: #EEE; border-radius: 3px; overflow: hidden; }
   .charan-promo .result-row-fill { height: 100%; border-radius: 3px; transition: width 1s ease-out; }
   .charan-promo .result-row-value { font-size: 14px; font-weight: 700; color: #1A1A1A; min-width: 28px; text-align: right; }
@@ -254,7 +253,6 @@
   }
   .charan-promo .coupon-inner { position: relative; z-index: 1; }
   .charan-promo .coupon-label { font-size: 12px; color: #7C3AED; margin-bottom: 6px; font-weight: 700; }
-  .charan-promo .coupon-name { font-size: 18px; font-weight: 900; color: #1A1A1A; margin-bottom: 3px; }
   .charan-promo .coupon-desc { font-size: 13px; color: #666; margin-bottom: 10px; }
   .charan-promo .coupon-code {
     display: inline-block; padding: 6px 16px;
@@ -316,7 +314,7 @@
       <div class="landing-step-label">점수 확인</div>
     </div>
     <div class="landing-step">
-      <div class="landing-step-icon">🎫</div>
+      <div class="landing-step-icon">🎁</div>
       <div class="landing-step-num">STEP 4</div>
       <div class="landing-step-label">쿠폰 받기</div>
     </div>
@@ -409,7 +407,6 @@
       <span class="karaoke-note" style="top:75%;right:18%;animation-delay:1.5s;">♬</span>
     </div>
     <div class="logo-area" id="logoResult" style="margin-bottom:16px;"></div>
-    <!-- 곡 인식 결과 — 제거됨 -->
     <!-- 멘트 -->
     <div class="karaoke-comment" id="karaokeComment">환상적인 노래실력</div>
     <div class="karaoke-comment-sub" id="karaokeCommentSub">아~주 칭찬해</div>
@@ -449,7 +446,7 @@
     </div>
     <div class="coupon-card">
       <div class="coupon-inner">
-        <div class="coupon-label">🎉 축하합니다! 쿠폰이 발급되었어요</div>
+        <div class="coupon-label">🎁 축하합니다! 쿠폰이 발급되었어요</div>
         <div class="coupon-desc" id="couponDesc">-</div>
         <div class="coupon-code" id="couponCode">-</div>
         <div class="coupon-expire">쿠폰 사용 방법 : 차란 > 마이차란 > 내 쿠폰 > 쿠폰 등록하기</div>
@@ -1018,7 +1015,6 @@ async function showResult(result) {
   showScreen('result');
   const { stability, melody, rhythm, volume, total } = result;
   const tier = COUPON_TIERS.find(t => total >= t.min);
-  // 곡 인식 UI — 제거됨
   // 노래방 멘트
   const commentList = COMMENTS[tier.grade];
   const comment = commentList[Math.floor(Math.random() * commentList.length)];
@@ -1026,7 +1022,6 @@ async function showResult(result) {
   document.getElementById('karaokeCommentSub').textContent = comment.sub;
   // 큰 점수 애니메이션
   animateNum('karaokeBigScore', 0, total, 2000, v => v);
-  // 등급 뱃지 — 제거됨 (표시 안 함)
   // 세부 점수
   setTimeout(() => {
     setBar('barStability', 'valStability', stability);
